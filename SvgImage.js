@@ -38,7 +38,8 @@ class SvgImage extends Component {
     this.doFetch(this.props);
   }
   componentWillReceiveProps(nextProps) {
-    const prevUri = this.props.source && this.props.source.uri;
+    const { source } = this.props;
+    const prevUri = source && source.uri;
     const nextUri = nextProps.source && nextProps.source.uri;
 
     if (nextUri && prevUri !== nextUri) {
@@ -46,9 +47,10 @@ class SvgImage extends Component {
     }
   }
   doFetch = async props => {
-    let uri = props.source && props.source.uri;
+    const { source, onLoadStart, onLoadEnd } = props;
+    let uri = source && source.uri;
     if (uri) {
-      props.onLoadStart && props.onLoadStart();
+      onLoadStart && onLoadStart();
       if (uri.match(/^data:image\/svg/)) {
         const index = uri.indexOf('<svg');
         this.setState({ fetchingUrl: uri, svgContent: uri.slice(index) });
@@ -61,18 +63,18 @@ class SvgImage extends Component {
           console.error('got error', err);
         }
       }
-      props.onLoadEnd && props.onLoadEnd();
+      onLoadEnd && onLoadEnd();
     }
   };
   render() {
-    const props = this.props;
+    const { disableAndroidHardwareAcceleration, containerStyle, style } = this.props;
     const { svgContent } = this.state;
     if (svgContent) {
-      const flattenedStyle = StyleSheet.flatten(props.style) || {};
+      const flattenedStyle = StyleSheet.flatten(style) || {};
       const html = getHTML(svgContent, flattenedStyle);
 
       return (
-        <View pointerEvents="none" style={[props.style, props.containerStyle]}>
+        <View pointerEvents="none" style={[style, containerStyle]}>
           <WebView
             originWhitelist={['*']}
             scalesPageToFit={true}
@@ -83,11 +85,12 @@ class SvgImage extends Component {
                 height: 100,
                 backgroundColor: 'transparent',
               },
-              props.style,
+              style,
             ]}
             scrollEnabled={false}
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
+            androidHardwareAccelerationDisabled={disableAndroidHardwareAcceleration}
             source={{ html }}
           />
         </View>
@@ -96,7 +99,7 @@ class SvgImage extends Component {
       return (
         <View
           pointerEvents="none"
-          style={[props.containerStyle, props.style]}
+          style={[containerStyle, style]}
         />
       );
     }
